@@ -22,6 +22,7 @@ const TaskManager = () => {
             priority: "medium"
         }
     ]);
+    const [title, setTitle] = useState("")
     
     return (
         <div>
@@ -39,6 +40,10 @@ const TaskManager = () => {
                     </li>
                     ))}
             </ul>
+            <input
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+            />
         </div>
     )
 };
