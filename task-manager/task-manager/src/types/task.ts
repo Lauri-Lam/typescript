@@ -2,7 +2,7 @@ export type TaskPrio = 'low' | 'medium' | 'high';
 
 export type UpdateTaskData = Partial<Omit<Task, 'id'>>;
 
-export interface AddTaskData {
+export type AddTaskData = {
     title: string,
     priority: TaskPrio,
     description?: string

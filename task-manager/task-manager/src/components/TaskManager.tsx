@@ -24,9 +24,11 @@ const TaskManager = () => {
     ]);
     const [ title, setTitle ] = useState("");
     const [ priority, setPriority ] = useState<TaskPrio>('medium');
+    const [ description, setDescription ] = useState("");
     const [ editingId, setEditingId ] = useState<number | null>(null);
     const [ editTitle, setEditTitle ] = useState("");
     const [ editPriority, setEditPriority ] = useState<TaskPrio>('medium');
+    const [ editDescription, setEditDescription ] = useState("");
 
     const handleAddTask = () => {
         if (title.trim() === "") {
@@ -35,14 +37,17 @@ const TaskManager = () => {
         }
         setTasks(addTask(tasks, {
             title: title.trim(),
-            priority: priority
+            priority: priority,
+            description: description.trim()
         }));
         setTitle("");
+        setDescription("");
     };
     const handleStartEdit = (task: Task) => {
         setEditingId(task.id);
         setEditTitle(task.title);
         setEditPriority(task.priority);
+        setEditDescription(task.description ?? "");
     };
     const handleSaveEdit = (id: number) => {
         if (editTitle.trim() === "") {
@@ -52,10 +57,17 @@ const TaskManager = () => {
         setTasks(
             updateTask(tasks, id, {
                 title: editTitle.trim(),
-                priority: editPriority
+                priority: editPriority,
+                description: editDescription.trim()
             })
         );
         setEditingId(null);
+    };
+    const handleCancelEdit = () => {
+        setEditingId(null);
+        setEditTitle("");
+        setEditDescription("");
+        setEditPriority("medium");
     };
     
     return (
@@ -70,6 +82,10 @@ const TaskManager = () => {
                                     value={editTitle}
                                     onChange={(event) => setEditTitle(event.target.value)}
                                 />
+                                <input
+                                        value={editDescription}
+                                        onChange={(event) => setEditDescription(event.target.value)}
+                                />
                                 <select
                                     value={editPriority}
                                     onChange={(event) => setEditPriority(event.target.value as TaskPrio)}
@@ -81,7 +97,15 @@ const TaskManager = () => {
                             </>
                         ) : (
                             <>
-                                {task.title} - {task.priority} - {task.completed ? 'Done' : 'Not done'}
+                                {task.description ? (
+                                    <>
+                                        {task.title} - {task.description} - {task.priority} - {task.completed ? 'Done' : 'Not done'}
+                                    </>
+                                ) : (
+                                    <>
+                                        {task.title} - {task.priority} - {task.completed ? 'Done' : 'Not done'}
+                                    </>
+                                )}
                             </>
                         )} 
                         {!task.completed && editingId !== task.id && (
@@ -95,9 +119,14 @@ const TaskManager = () => {
                             </button>
                         )}
                         {editingId === task.id ? (
-                                <button onClick={() => handleSaveEdit(task.id)}>
-                                    Save
-                                </button>
+                                <>
+                                    <button onClick={handleCancelEdit}>
+                                        Cancel
+                                    </button>
+                                    <button onClick={() => handleSaveEdit(task.id)}>
+                                        Save
+                                    </button>
+                                </>
                         ) : (
                                 <button onClick={() => handleStartEdit(task)}>
                                     Edit
@@ -109,6 +138,11 @@ const TaskManager = () => {
             <input
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
+            />
+            <input
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Description"
             />
             <select
                 value={priority}
