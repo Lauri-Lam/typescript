@@ -7,9 +7,9 @@ export const addTask = (tasks: Task[], data: AddTaskData) => {
 
     const newTask: Task = {
         id: nextId,
-        title: title,
+        title: title.trim(),
         completed: false,
-        ...(description !== undefined && { description }),
+        ...(description?.trim() && { description: description.trim()}),
         priority: priority
     }
 
