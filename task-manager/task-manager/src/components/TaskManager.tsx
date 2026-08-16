@@ -1,11 +1,16 @@
 import { useState } from "react";
-import type { Task, TaskPrio } from "../types/task";
+import type { Task, TaskPrio, AddTaskData } from "../types/task";
 import {
     completeTask,
     addTask,
     deleteTask,
     updateTask
 } from "../services/taskService";
+import AddTaskForm from "./AddTaskForm";
+import TaskFilter from "./TaskFilter";
+import type { FilterType } from "./TaskFilter";
+import ClearCompletedButton from "./ClearCompletedButton";
+import TaskItem from "./TaskItem";
 
 const TaskManager = () => {
     const [ tasks, setTasks ] = useState<Task[]>([
@@ -22,27 +27,12 @@ const TaskManager = () => {
             priority: "medium"
         }
     ]);
-    const [ title, setTitle ] = useState("");
-    const [ priority, setPriority ] = useState<TaskPrio>('medium');
-    const [ description, setDescription ] = useState("");
     const [ editingId, setEditingId ] = useState<number | null>(null);
     const [ editTitle, setEditTitle ] = useState("");
     const [ editPriority, setEditPriority ] = useState<TaskPrio>('medium');
     const [ editDescription, setEditDescription ] = useState("");
+    const [ filter, setFilter ] = useState<FilterType>("all");
 
-    const handleAddTask = () => {
-        if (title.trim() === "") {
-            setTitle("")
-            return;
-        }
-        setTasks(addTask(tasks, {
-            title: title.trim(),
-            priority: priority,
-            description: description.trim()
-        }));
-        setTitle("");
-        setDescription("");
-    };
     const handleStartEdit = (task: Task) => {
         setEditingId(task.id);
         setEditTitle(task.title);
@@ -69,92 +59,54 @@ const TaskManager = () => {
         setEditDescription("");
         setEditPriority("medium");
     };
+    const handleAddTask = (data: AddTaskData) => {
+        setTasks(addTask(tasks, data));
+    };
+    const handleClearCompleted = () => {
+        const newTasks = tasks.filter(task => !task.completed);
+        setTasks(newTasks);
+    };
+    const handleCompleteTask = (id: number) => {
+        setTasks(completeTask(tasks, id))
+    };
+    const handleDeleteTask = (id: number) => {
+        setTasks(deleteTask(tasks, id))
+    };
+
+    let filteredTasks = tasks;
+    if (filter === "active") {
+        filteredTasks = tasks.filter(task => !task.completed);
+    };
+    if (filter === "completed") {
+        filteredTasks = tasks.filter(task => task.completed);
+    };
     
     return (
         <div>
             <h1>Task Manager</h1>
+            <ClearCompletedButton onClearCompleted={handleClearCompleted} />
+            <TaskFilter onFilterChange={setFilter} />
             <ul>
-                { tasks.map(task => (
-                    <li key={task.id}>
-                        {editingId === task.id ? (
-                            <>
-                                <input
-                                    value={editTitle}
-                                    onChange={(event) => setEditTitle(event.target.value)}
-                                />
-                                <input
-                                        value={editDescription}
-                                        onChange={(event) => setEditDescription(event.target.value)}
-                                />
-                                <select
-                                    value={editPriority}
-                                    onChange={(event) => setEditPriority(event.target.value as TaskPrio)}
-                                >
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
-                                </select>
-                            </>
-                        ) : (
-                            <>
-                                {task.description ? (
-                                    <>
-                                        {task.title} - {task.description} - {task.priority} - {task.completed ? 'Done' : 'Not done'}
-                                    </>
-                                ) : (
-                                    <>
-                                        {task.title} - {task.priority} - {task.completed ? 'Done' : 'Not done'}
-                                    </>
-                                )}
-                            </>
-                        )} 
-                        {!task.completed && editingId !== task.id && (
-                            <button onClick={() => setTasks(completeTask(tasks, task.id))}>
-                                Complete
-                            </button>
-                        )}
-                        {editingId !== task.id && (
-                            <button onClick={() => setTasks(deleteTask(tasks, task.id))}>
-                                Delete
-                            </button>
-                        )}
-                        {editingId === task.id ? (
-                                <>
-                                    <button onClick={handleCancelEdit}>
-                                        Cancel
-                                    </button>
-                                    <button onClick={() => handleSaveEdit(task.id)}>
-                                        Save
-                                    </button>
-                                </>
-                        ) : (
-                                <button onClick={() => handleStartEdit(task)}>
-                                    Edit
-                                </button>
-                        )}
-                    </li>
-                    ))}
+                {filteredTasks.map(task => (
+                    <TaskItem
+                        key={task.id}
+                        task={task}
+                        editingId={editingId}
+                        editTitle={editTitle}
+                        editDescription={editDescription}
+                        editPriority={editPriority}
+                        onEditTitleChange={setEditTitle}
+                        onEditDescriptionChange={setEditDescription}
+                        onEditPriorityChange={setEditPriority}
+                        onComplete={handleCompleteTask}
+                        onDelete={handleDeleteTask}
+                        onStartEdit={handleStartEdit}
+                        onSaveEdit={handleSaveEdit}
+                        onCancelEdit={handleCancelEdit}
+                    />
+                ))}
             </ul>
-            <input
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-            />
-            <input
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                placeholder="Description"
-            />
-            <select
-                value={priority}
-                onChange={(event) => setPriority(event.target.value as TaskPrio)}
-            >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-            </select>
-            <button onClick={handleAddTask}>
-                Add Task
-            </button>
+            <AddTaskForm onAdd={handleAddTask} />
         </div>
     )
 };
