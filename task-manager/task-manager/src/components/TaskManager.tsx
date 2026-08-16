@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Task, TaskPrio, AddTaskData } from "../types/task";
 import {
     completeTask,
@@ -13,25 +13,14 @@ import ClearCompletedButton from "./ClearCompletedButton";
 import TaskItem from "./TaskItem";
 
 const TaskManager = () => {
-    const [ tasks, setTasks ] = useState<Task[]>([
-        {
-            id: 1,
-            title: "Learn React",
-            completed: false,
-            priority: "high"
-        },
-        {
-            id: 2,
-            title: "Build Task Manager",
-            completed: false,
-            priority: "medium"
-        }
-    ]);
+    const [ tasks, setTasks ] = useState<Task[]>([]);
     const [ editingId, setEditingId ] = useState<number | null>(null);
     const [ editTitle, setEditTitle ] = useState("");
     const [ editPriority, setEditPriority ] = useState<TaskPrio>('medium');
     const [ editDescription, setEditDescription ] = useState("");
     const [ filter, setFilter ] = useState<FilterType>("all");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const handleStartEdit = (task: Task) => {
         setEditingId(task.id);
@@ -80,10 +69,43 @@ const TaskManager = () => {
     if (filter === "completed") {
         filteredTasks = tasks.filter(task => task.completed);
     };
+
+    useEffect(() => {
+        const loadTasks = async () => {
+            setError(null);
+            try {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                const loadedTasks: Task[] = [
+                    {
+                        id: 1,
+                        title: "Learn React",
+                        completed: false,
+                        priority: "high"
+                    },
+                    {
+                        id: 2,
+                        title: "Build Task Manager",
+                        completed: false,
+                        priority: "medium"
+                    }
+                ];
+
+                setTasks(loadedTasks);
+            } catch {
+                setError("Failed to load tasks.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadTasks();
+    }, []);
     
     return (
         <div>
             <h1>Task Manager</h1>
+            {loading && <p>Loading tasks...</p>}
+            {error && <p>{error}</p>}
             <ClearCompletedButton onClearCompleted={handleClearCompleted} />
             <TaskFilter onFilterChange={setFilter} />
             <ul>
