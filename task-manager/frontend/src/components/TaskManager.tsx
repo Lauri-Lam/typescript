@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
 import type { Task, TaskPrio, AddTaskData } from "../types/task";
 import {
-    completeTask,
-    addTask,
     deleteTask,
-    updateTask
 } from "../services/taskService";
 import AddTaskForm from "./AddTaskForm";
 import TaskFilter from "./TaskFilter";
@@ -28,35 +25,72 @@ const TaskManager = () => {
         setEditPriority(task.priority);
         setEditDescription(task.description ?? "");
     };
-    const handleSaveEdit = (id: number) => {
-        if (editTitle.trim() === "") {
-            setEditTitle("");
-            return;
-        }
-        setTasks(
-            updateTask(tasks, id, {
-                title: editTitle.trim(),
-                priority: editPriority,
-                description: editDescription.trim()
-            })
-        );
-        setEditingId(null);
-    };
     const handleCancelEdit = () => {
         setEditingId(null);
         setEditTitle("");
         setEditDescription("");
         setEditPriority("medium");
+        setError(null);
     };
-    const handleAddTask = (data: AddTaskData) => {
-        setTasks(addTask(tasks, data));
+    const handleSaveEdit = async (id: number) => {
+        if(editTitle.trim() === ""){
+            setEditTitle("");
+            setError("Empty title not allowed.")
+            return;
+        };
+
+        const response = await fetch(`http://localhost:3000/tasks/${id}`, {
+            method: "PATCH",
+            headers: { "Content-type": "application/json" },
+            body: JSON.stringify({
+                title: editTitle.trim(),
+                priority: editPriority,
+                description: editDescription.trim()
+            })
+        });
+
+        const updatedTask: Task = await response.json();
+
+        setTasks(tasks.map(task => {
+            if(task.id === updatedTask.id){
+                return updatedTask;
+            }
+            return task;
+        }));
+        setEditingId(null);
+        setError(null);
+    };
+    const handleAddTask = async (data: AddTaskData) => {
+        const response = await fetch("http://localhost:3000/tasks", {
+            method: "POST",
+            headers: { "Content-type": "application/json"},
+            body: JSON.stringify(data)
+        });
+
+        const newTask: Task = await response.json();
+        setTasks([...tasks, newTask]);
+    };
+    const handleCompleteTask = async (id: number) => {
+        const response = await fetch(`http://localhost:3000/tasks/${id}`, {
+            method: "PATCH",
+            headers: { "Content-type": "application/json" },
+            body: JSON.stringify({
+                completed: true
+            })
+        });
+
+        const updatedTask: Task = await response.json();
+
+        setTasks(tasks.map(task => {
+            if(task.id === updatedTask.id){
+                return updatedTask;
+            };
+            return task;
+        }));
     };
     const handleClearCompleted = () => {
         const newTasks = tasks.filter(task => !task.completed);
         setTasks(newTasks);
-    };
-    const handleCompleteTask = (id: number) => {
-        setTasks(completeTask(tasks, id))
     };
     const handleDeleteTask = (id: number) => {
         setTasks(deleteTask(tasks, id))

@@ -9,7 +9,7 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-const tasks = [
+let tasks = [
     {
         id: 1,
         title: "Learn backend",
@@ -29,9 +29,49 @@ app.get("/tasks", (req, res) => {
 });
 
 app.post("/tasks", (req, res) => {
-    const task = req.body;
-    console.log(task);
-    res.json(task);
+    const { title, priority, description } = req.body;
+    const nextId = tasks.length === 0 ? 1 : Math.max(...tasks.map(task => task.id)) + 1;
+
+    const newTask = {
+        id: nextId,
+        title: title.trim(),
+        priority: priority,
+        ...(description?.trim() && { description: description.trim() }),
+        completed: false
+    }
+
+    tasks.push(newTask);
+
+    res.json(newTask);
+});
+
+app.patch("/tasks/:id", (req, res) => {
+    const id = Number(req.params.id);
+
+    const task = tasks.find(task => task.id === id);
+
+    if(!task){
+        return res.status(404).json({ message: "Task not found."});
+    };
+
+    let updatedTask;
+    tasks = tasks.map(task => {
+        if(task.id === id){
+            updatedTask = {
+                ...task,
+                ...req.body
+            };
+
+            if("description" in req.body &&
+                req.body.description?.trim() === ""
+            ) { delete updatedTask.description };
+
+            return updatedTask;
+        }
+        return task;
+    });
+
+    res.json(updatedTask)
 });
 
 app.listen(PORT, () => {
