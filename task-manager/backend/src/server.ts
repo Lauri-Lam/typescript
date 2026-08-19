@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 
-
 const app = express();
 
 const PORT = 3000;
@@ -25,53 +24,69 @@ let tasks = [
 ];
 
 app.get("/tasks", (req, res) => {
+    // do error handling when cant get tasks from postgre
     res.json(tasks);
 });
 
 app.post("/tasks", (req, res) => {
-    const { title, priority, description } = req.body;
-    const nextId = tasks.length === 0 ? 1 : Math.max(...tasks.map(task => task.id)) + 1;
+    try {
+        const { title, priority, description } = req.body;
+        const nextId = tasks.length === 0 ? 1 : Math.max(...tasks.map(task => task.id)) + 1;
 
-    const newTask = {
-        id: nextId,
-        title: title.trim(),
-        priority: priority,
-        ...(description?.trim() && { description: description.trim() }),
-        completed: false
-    }
+        const newTask = {
+            id: nextId,
+            title: title.trim(),
+            priority: priority,
+            ...(description?.trim() && { description: description.trim() }),
+            completed: false
+        }
 
-    tasks.push(newTask);
-
-    res.json(newTask);
+        tasks.push(newTask);
+        res.status(201).json({
+            task: newTask,
+            message: "Task created"
+        });
+    } catch {
+        res.status(500).json({
+            message: "Unexpected error"
+        });
+    };
 });
 
 app.patch("/tasks/:id", (req, res) => {
-    const id = Number(req.params.id);
+    try {
+        const id = Number(req.params.id);
 
-    const task = tasks.find(task => task.id === id);
+        const task = tasks.find(task => task.id === id);
 
-    if(!task){
-        return res.status(404).json({ message: "Task not found."});
+        if(!task){
+            return res.status(404).json({ message: "Task not found."});
+        };
+
+        let updatedTask;
+        tasks = tasks.map(task => {
+            if(task.id === id){
+                updatedTask = {
+                    ...task,
+                    ...req.body
+                };
+
+                if("description" in req.body &&
+                    req.body.description?.trim() === ""
+                ) { delete updatedTask.description };
+
+                return updatedTask;
+            }
+            return task;
+        });
+
+        res.status(200).json({
+            task: updatedTask,
+            message: "Task updated"
+        });
+    } catch {
+        res.status(500).json({message: "Unexpected error"})
     };
-
-    let updatedTask;
-    tasks = tasks.map(task => {
-        if(task.id === id){
-            updatedTask = {
-                ...task,
-                ...req.body
-            };
-
-            if("description" in req.body &&
-                req.body.description?.trim() === ""
-            ) { delete updatedTask.description };
-
-            return updatedTask;
-        }
-        return task;
-    });
-
-    res.json(updatedTask)
 });
 
 app.delete("/tasks/completed", (req, res) => {
@@ -88,18 +103,22 @@ app.delete("/tasks/completed", (req, res) => {
 app.delete("/tasks/:id", (req, res) => {
     try {
         const id = Number(req.params.id);
+
         const task = tasks.find(task => task.id === id);
+
         if (!task) {
             res.status(404).json({
                 message: "Task not found"
             });
             return;
         };
+
         tasks = tasks.filter(task => task.id !== id);
+
         res.status(200).json({
-            message: `Task "${task.title}" deleted succesfully`
+            message: `Task deleted`
         });
-    } catch (error){
+    } catch {
         res.status(500).json({
             message: `Unexpected error`
         })

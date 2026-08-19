@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { Task, TaskPrio, AddTaskData } from "../types/task";
+import type { Task, TaskPrio, AddTaskData, TaskResponse, ErrorMessage } from "../types/task";
 import AddTaskForm from "./AddTaskForm";
 import TaskFilter from "./TaskFilter";
 import type { FilterType } from "./TaskFilter";
@@ -13,8 +13,16 @@ const TaskManager = () => {
     const [ editPriority, setEditPriority ] = useState<TaskPrio>('medium');
     const [ editDescription, setEditDescription ] = useState("");
     const [ filter, setFilter ] = useState<FilterType>("all");
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [ loading, setLoading ] = useState(true);
+    const [ error, setError ] = useState<string | null>(null);
+
+    let filteredTasks = tasks;
+    if (filter === "active") {
+        filteredTasks = tasks.filter(task => !task.completed);
+    };
+    if (filter === "completed") {
+        filteredTasks = tasks.filter(task => task.completed);
+    };
 
     const handleStartEdit = (task: Task) => {
         setEditingId(task.id);
@@ -30,121 +38,168 @@ const TaskManager = () => {
         setError(null);
     };
     const handleSaveEdit = async (id: number) => {
-        if(editTitle.trim() === ""){
-            setEditTitle("");
-            setError("Empty title not allowed.")
-            return;
+        try {
+            if(editTitle.trim() === ""){
+                setEditTitle("");
+                setError("Empty title not allowed.")
+                setTimeout(() => { setError(null) }, 3500);
+                return;
+            };
+
+            const response = await fetch(`http://localhost:3000/tasks/${id}`, {
+                method: "PATCH",
+                headers: { "Content-type": "application/json" },
+                body: JSON.stringify({
+                    title: editTitle.trim(),
+                    priority: editPriority,
+                    description: editDescription.trim()
+                })
+            });
+
+            if (!response.ok) {
+                const data: ErrorMessage = await response.json();
+                setError(data.message);
+                return;
+            };
+
+            const data: TaskResponse = await response.json();
+
+            setTasks(currentTasks =>
+                currentTasks.map(task => {
+                    if(task.id === data.task.id){
+                        return data.task;
+                    }
+                return task;
+            }));
+
+            setEditingId(null);
+            setError(null);
+        } catch {
+            setError("No response from backend");
         };
-
-        const response = await fetch(`http://localhost:3000/tasks/${id}`, {
-            method: "PATCH",
-            headers: { "Content-type": "application/json" },
-            body: JSON.stringify({
-                title: editTitle.trim(),
-                priority: editPriority,
-                description: editDescription.trim()
-            })
-        });
-
-        const updatedTask: Task = await response.json();
-
-        setTasks(tasks.map(task => {
-            if(task.id === updatedTask.id){
-                return updatedTask;
-            }
-            return task;
-        }));
-        setEditingId(null);
-        setError(null);
     };
     const handleAddTask = async (data: AddTaskData) => {
-        const response = await fetch("http://localhost:3000/tasks", {
+        try {
+            const response = await fetch("http://localhost:3000/tasks", {
             method: "POST",
             headers: { "Content-type": "application/json"},
             body: JSON.stringify(data)
-        });
+            });
 
-        const newTask: Task = await response.json();
-        setTasks([...tasks, newTask]);
+            if (!response.ok) {
+                const responseData: ErrorMessage = await response.json();
+                setError(responseData.message);
+                setTimeout(() => {
+                    setError(null);
+                }, 3500);
+                return;
+            };
+
+            const responseData: TaskResponse = await response.json();
+
+            setTasks(currentTasks => [...currentTasks, responseData.task]);
+            setError(null);
+        } catch {
+            setError("No response from backend");
+        };
     };
     const handleCompleteTask = async (id: number) => {
-        const response = await fetch(`http://localhost:3000/tasks/${id}`, {
-            method: "PATCH",
-            headers: { "Content-type": "application/json" },
-            body: JSON.stringify({
-                completed: true
-            })
-        });
+        try {
+            const response = await fetch(`http://localhost:3000/tasks/${id}`, {
+                method: "PATCH",
+                headers: { "Content-type": "application/json" },
+                body: JSON.stringify({
+                    completed: true
+                })
+            });
 
-        const updatedTask: Task = await response.json();
+            if (!response.ok) {
+                const data: ErrorMessage = await response.json();
+                setError(data.message);
+                setTimeout(() => {
+                    setError(null);
+                }, 3500);
+                return;
+            }
 
-        setTasks(tasks.map(task => {
-            if(task.id === updatedTask.id){
-                return updatedTask;
-            };
-            return task;
-        }));
+            const data: TaskResponse = await response.json();
+
+            setTasks(currentTasks =>
+                currentTasks.map(task => {
+                    if(task.id === data.task.id){
+                        return data.task;
+                    };
+                    return task;
+                }));
+            setError(null);
+        } catch {
+            setError("No response from backend");
+        };
     };
     const handleClearCompleted = async () => {
-        const response = await fetch(`http://localhost:3000/tasks/completed`, {
+        try {
+            const response = await fetch(`http://localhost:3000/tasks/completed`, {
             method: "DELETE"
-        });
-        if (!response.ok) {
-            const data = await response.json();
-            setError(data.message);
-            setTimeout(() => {
-                setError(null);
-            }, 3500);
-            return
+            });
+            if (!response.ok) {
+                const data: ErrorMessage = await response.json();
+                setError(data.message);
+                setTimeout(() => {
+                    setError(null);
+                }, 3500);
+                return
+            };
+            setTasks(currentTasks => currentTasks.filter(task => !task.completed));
+            setError(null);
+        } catch {
+            setError("No response from backend");
         };
-        setTasks(tasks.filter(task => task.completed === false));
     };
     const handleDeleteTask = async (id: number) => {
-        const response = await fetch(`http://localhost:3000/tasks/${id}`, {
-            method: "DELETE"
-        });
-        const data = await response.json();
-        if (!response.ok) {
-            setError(data.message);
-            setTimeout(() => {
-                setError(null);
-            }, 3500);
-            return;
-        };
-        setTasks(tasks.filter(task => task.id !== id));
-        setError(data.message);
-        setTimeout(() => {
-            setError(null);
-        }, 3500);
-    };
+        try {
+            const response = await fetch(`http://localhost:3000/tasks/${id}`, {
+                method: "DELETE"
+            });
 
-    let filteredTasks = tasks;
-    if (filter === "active") {
-        filteredTasks = tasks.filter(task => !task.completed);
-    };
-    if (filter === "completed") {
-        filteredTasks = tasks.filter(task => task.completed);
+            if (!response.ok) {
+                const data: ErrorMessage = await response.json();
+                setError(data.message);
+                setTimeout(() => {
+                    setError(null);
+                }, 3500);
+                return;
+            };
+
+            setTasks(currentTasks => currentTasks.filter(task => task.id !== id));
+            setError(null);
+        } catch {
+            setError("No response from backend");
+        };
     };
 
     useEffect(() => {
         const loadTasks = async () => {
-            setError(null);
             try {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                const response = await fetch("http://localhost:3000/tasks");
+                setLoading(true);
+                const response = await fetch("http://localhost:3000/tasks", {
+                    method: "GET"
+                });
 
-                if (!response.ok) 
-                    throw new Error(`Failed to load tasks. Error: ${response.status}`)
+                if (!response.ok) {
+                    // const data: ErrorMessage = await response.json();
+                    // setError(data.message);
+                    setError("Couldn't load database on render");
+                    setTimeout(() => {
+                        setError(null);
+                    }, 3500);
+                    return;
+                };
 
                 const loadedTasks: Task[] = await response.json();
 
                 setTasks(loadedTasks);
-            } catch (error){
-                if(error instanceof Error) {
-                    setError(error.message);
-                } else {
-                    setError("Failed to load tasks.");
-                }
+            } catch {
+                setError("Failed to load tasks.");
             } finally {
                 setLoading(false);
             }
