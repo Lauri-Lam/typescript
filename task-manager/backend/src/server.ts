@@ -74,6 +74,38 @@ app.patch("/tasks/:id", (req, res) => {
     res.json(updatedTask)
 });
 
+app.delete("/tasks/completed", (req, res) => {
+    try {
+        tasks = tasks.filter(task => task.completed === false);
+        res.status(200).json();
+    } catch {
+        res.status(500).json({
+            message: "Unexpected error"
+        });
+    };
+});
+
+app.delete("/tasks/:id", (req, res) => {
+    try {
+        const id = Number(req.params.id);
+        const task = tasks.find(task => task.id === id);
+        if (!task) {
+            res.status(404).json({
+                message: "Task not found"
+            });
+            return;
+        };
+        tasks = tasks.filter(task => task.id !== id);
+        res.status(200).json({
+            message: `Task "${task.title}" deleted succesfully`
+        });
+    } catch (error){
+        res.status(500).json({
+            message: `Unexpected error`
+        })
+    };
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

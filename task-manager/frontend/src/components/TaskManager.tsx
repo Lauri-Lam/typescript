@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
 import type { Task, TaskPrio, AddTaskData } from "../types/task";
-import {
-    deleteTask,
-} from "../services/taskService";
 import AddTaskForm from "./AddTaskForm";
 import TaskFilter from "./TaskFilter";
 import type { FilterType } from "./TaskFilter";
@@ -88,12 +85,37 @@ const TaskManager = () => {
             return task;
         }));
     };
-    const handleClearCompleted = () => {
-        const newTasks = tasks.filter(task => !task.completed);
-        setTasks(newTasks);
+    const handleClearCompleted = async () => {
+        const response = await fetch(`http://localhost:3000/tasks/completed`, {
+            method: "DELETE"
+        });
+        if (!response.ok) {
+            const data = await response.json();
+            setError(data.message);
+            setTimeout(() => {
+                setError(null);
+            }, 3500);
+            return
+        };
+        setTasks(tasks.filter(task => task.completed === false));
     };
-    const handleDeleteTask = (id: number) => {
-        setTasks(deleteTask(tasks, id))
+    const handleDeleteTask = async (id: number) => {
+        const response = await fetch(`http://localhost:3000/tasks/${id}`, {
+            method: "DELETE"
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            setError(data.message);
+            setTimeout(() => {
+                setError(null);
+            }, 3500);
+            return;
+        };
+        setTasks(tasks.filter(task => task.id !== id));
+        setError(data.message);
+        setTimeout(() => {
+            setError(null);
+        }, 3500);
     };
 
     let filteredTasks = tasks;
@@ -132,9 +154,11 @@ const TaskManager = () => {
     
     return (
         <div>
+            <div>
+                {error && <p>{error}</p>}
+            </div>
             <h1>Task Manager</h1>
             {loading && <p>Loading tasks...</p>}
-            {error && <p>{error}</p>}
             <ClearCompletedButton onClearCompleted={handleClearCompleted} />
             <TaskFilter onFilterChange={setFilter} />
             <ul>
