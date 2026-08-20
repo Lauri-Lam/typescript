@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import type { Task, TaskPrio, AddTaskData, TaskResponse, ErrorMessage } from "../types/task";
+import type { TaskResponse, ErrorMessage } from "../types/task";
+import type { Task, TaskPrio, AddTaskData, } from "../../../shared/task.ts";
 import AddTaskForm from "./AddTaskForm";
 import TaskFilter from "./TaskFilter";
 import type { FilterType } from "./TaskFilter";

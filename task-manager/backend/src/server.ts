@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import type { Task, AddTaskData, UpdateTaskData } from "../../shared/task.ts"
 
 const app = express();
 
@@ -8,7 +9,7 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-let tasks = [
+let tasks: Task[] = [
     {
         id: 1,
         title: "Learn backend",
@@ -30,10 +31,10 @@ app.get("/tasks", (req, res) => {
 
 app.post("/tasks", (req, res) => {
     try {
-        const { title, priority, description } = req.body;
+        const { title, priority, description }: AddTaskData = req.body;
         const nextId = tasks.length === 0 ? 1 : Math.max(...tasks.map(task => task.id)) + 1;
 
-        const newTask = {
+        const newTask: Task = {
             id: nextId,
             title: title.trim(),
             priority: priority,
@@ -56,25 +57,27 @@ app.post("/tasks", (req, res) => {
 app.patch("/tasks/:id", (req, res) => {
     try {
         const id = Number(req.params.id);
+        const data: UpdateTaskData = req.body;
 
-        const task = tasks.find(task => task.id === id);
+        const task: Task|undefined = tasks.find(task => task.id === id);
 
         if(!task){
             return res.status(404).json({ message: "Task not found."});
         };
 
-        let updatedTask;
-        tasks = tasks.map(task => {
-            if(task.id === id){
-                updatedTask = {
+        const updatedTask = {
                     ...task,
-                    ...req.body
+                    ...data
                 };
 
-                if("description" in req.body &&
-                    req.body.description?.trim() === ""
-                ) { delete updatedTask.description };
+        if("description" in data &&
+            data.description?.trim() === ""
+        ) {
+            delete updatedTask.description
+        };
 
+        tasks = tasks.map(task => {
+            if(task.id === id){
                 return updatedTask;
             }
             return task;
@@ -104,7 +107,7 @@ app.delete("/tasks/:id", (req, res) => {
     try {
         const id = Number(req.params.id);
 
-        const task = tasks.find(task => task.id === id);
+        const task: Task|undefined = tasks.find(task => task.id === id);
 
         if (!task) {
             res.status(404).json({
