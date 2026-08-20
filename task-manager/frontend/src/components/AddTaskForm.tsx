@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { AddTaskData, TaskPrio } from "../types/task";
+import type { AddTaskData, TaskPrio } from "../../../shared/task.ts";
 
 type AddTaskFormProps = {
         onAdd: (data: AddTaskData) => void;

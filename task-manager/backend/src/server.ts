@@ -65,7 +65,7 @@ app.patch("/tasks/:id", (req, res) => {
             return res.status(404).json({ message: "Task not found."});
         };
 
-        const updatedTask = {
+        const updatedTask: Task = {
                     ...task,
                     ...data
                 };

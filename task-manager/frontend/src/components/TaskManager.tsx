@@ -7,7 +7,7 @@ import type { FilterType } from "./TaskFilter";
 import ClearCompletedButton from "./ClearCompletedButton";
 import TaskItem from "./TaskItem";
 
-const TaskManager = () => {
+export default function TaskManager() {
     const [ tasks, setTasks ] = useState<Task[]>([]);
     const [ editingId, setEditingId ] = useState<number | null>(null);
     const [ editTitle, setEditTitle ] = useState("");
@@ -21,6 +21,7 @@ const TaskManager = () => {
     if (filter === "active") {
         filteredTasks = tasks.filter(task => !task.completed);
     };
+
     if (filter === "completed") {
         filteredTasks = tasks.filter(task => task.completed);
     };
@@ -31,6 +32,7 @@ const TaskManager = () => {
         setEditPriority(task.priority);
         setEditDescription(task.description ?? "");
     };
+
     const handleCancelEdit = () => {
         setEditingId(null);
         setEditTitle("");
@@ -38,6 +40,7 @@ const TaskManager = () => {
         setEditPriority("medium");
         setError(null);
     };
+
     const handleSaveEdit = async (id: number) => {
         try {
             if(editTitle.trim() === ""){
@@ -79,6 +82,7 @@ const TaskManager = () => {
             setError("No response from backend");
         };
     };
+
     const handleAddTask = async (data: AddTaskData) => {
         try {
             const response = await fetch("http://localhost:3000/tasks", {
@@ -104,6 +108,7 @@ const TaskManager = () => {
             setError("No response from backend");
         };
     };
+
     const handleCompleteTask = async (id: number) => {
         try {
             const response = await fetch(`http://localhost:3000/tasks/${id}`, {
@@ -137,6 +142,7 @@ const TaskManager = () => {
             setError("No response from backend");
         };
     };
+
     const handleClearCompleted = async () => {
         try {
             const response = await fetch(`http://localhost:3000/tasks/completed`, {
@@ -156,6 +162,7 @@ const TaskManager = () => {
             setError("No response from backend");
         };
     };
+    
     const handleDeleteTask = async (id: number) => {
         try {
             const response = await fetch(`http://localhost:3000/tasks/${id}`, {
@@ -241,5 +248,3 @@ const TaskManager = () => {
         </div>
     )
 };
-
-export default TaskManager;

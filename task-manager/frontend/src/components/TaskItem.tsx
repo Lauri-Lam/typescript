@@ -1,4 +1,4 @@
-import type { Task, TaskPrio } from "../types/task";
+import type { Task, TaskPrio } from "../../../shared/task.ts";
 
 type TaskItemProps = {
     task: Task;

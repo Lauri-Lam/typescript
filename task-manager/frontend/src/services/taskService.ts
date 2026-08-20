@@ -1,4 +1,4 @@
-import type { Task, AddTaskData, UpdateTaskData } from "../types/task";
+import type { Task, AddTaskData, UpdateTaskData } from "../../../shared/task";
 
 /*
 NOTHING IN THIS FILE IS NEEDED AFTER BACKEND IS DONE
