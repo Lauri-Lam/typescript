@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
-import type { Task, AddTaskData, UpdateTaskData } from "../../shared/task.ts"
+import type { Task, AddTaskData, UpdateTaskData } from "../../shared/task.ts";
+import pool from "./db.js";
 
 const app = express();
 
@@ -23,6 +24,17 @@ let tasks: Task[] = [
         priority: "medium"
     }
 ];
+
+const testing = async () => {
+    try {
+        await pool.query("SELECT 1");
+        console.log("Database connected!")
+    } catch (err){
+        console.log(err)
+    }
+}
+
+testing();
 
 app.get("/tasks", (req, res) => {
     // do error handling when cant get tasks from postgre
