@@ -10,68 +10,43 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-let tasks: Task[] = [
-    {
-        id: 1,
-        title: "Learn backend",
-        completed: false,
-        priority: "high"
-    },
-    {
-        id: 2,
-        title: "Connect React to API",
-        completed: false,
-        priority: "medium"
-    }
-];
-
-const testing = async () => {
+app.get("/tasks", async (req, res) => {
     try {
-        await pool.query("SELECT 1");
-        console.log("Database connected!")
-    } catch (err){
-        console.log(err)
-    }
-}
-
-testing();
-
-app.get("/tasks", (req, res) => {
-    // do error handling when cant get tasks from postgre
-    res.json(tasks);
-});
-
-app.post("/tasks", (req, res) => {
-    try {
-        const { title, priority, description }: AddTaskData = req.body;
-        const nextId = tasks.length === 0 ? 1 : Math.max(...tasks.map(task => task.id)) + 1;
-
-        const newTask: Task = {
-            id: nextId,
-            title: title.trim(),
-            priority: priority,
-            ...(description?.trim() && { description: description.trim() }),
-            completed: false
-        }
-
-        tasks.push(newTask);
-        res.status(201).json({
-            task: newTask,
-            message: "Task created"
-        });
+        const result = await pool.query<Task>("SELECT * FROM tasks");
+        res.json(result.rows);
     } catch {
         res.status(500).json({
-            message: "Unexpected error"
+            message: "Backend error"
         });
     };
 });
 
-app.patch("/tasks/:id", (req, res) => {
+app.post("/tasks", async (req, res) => {
+    try {
+        const { title, priority, description }: AddTaskData = req.body;
+        
+        const result = await pool.query<Task>(
+            "INSERT INTO tasks (title, priority, description) VALUES ($1, $2, $3) RETURNING *", [title, priority, description]);
+
+        res.status(201).json({
+            task: result.rows[0],
+            message: "Task created"
+        });
+    } catch {
+        res.status(500).json({
+            message: "Backend error"
+        });
+    };
+});
+
+app.patch("/tasks/:id", async (req, res) => {
     try {
         const id = Number(req.params.id);
         const data: UpdateTaskData = req.body;
 
-        const task: Task|undefined = tasks.find(task => task.id === id);
+        const selectResult = await pool.query<Task>("SELECT * FROM tasks WHERE id = $1", [id]);
+
+        const task: Task|undefined = selectResult.rows[0];
 
         if(!task){
             return res.status(404).json({ message: "Task not found."});
@@ -88,38 +63,36 @@ app.patch("/tasks/:id", (req, res) => {
             delete updatedTask.description
         };
 
-        tasks = tasks.map(task => {
-            if(task.id === id){
-                return updatedTask;
-            }
-            return task;
-        });
+        const updateResult = await pool.query<Task>("UPDATE tasks SET title = $1, priority = $2, completed = $3, description = $4 WHERE id = $5 RETURNING *",
+            [updatedTask.title, updatedTask.priority, updatedTask.completed, updatedTask.description ?? null, id]);
 
         res.status(200).json({
-            task: updatedTask,
+            task: updateResult.rows[0],
             message: "Task updated"
         });
     } catch {
-        res.status(500).json({message: "Unexpected error"})
+        res.status(500).json({message: "Backend error"})
     };
 });
 
-app.delete("/tasks/completed", (req, res) => {
+app.delete("/tasks/completed", async (req, res) => {
     try {
-        tasks = tasks.filter(task => task.completed === false);
+        await pool.query("DELETE FROM tasks WHERE completed = true");
         res.status(200).json();
     } catch {
         res.status(500).json({
-            message: "Unexpected error"
+            message: "Backend error"
         });
     };
 });
 
-app.delete("/tasks/:id", (req, res) => {
+app.delete("/tasks/:id", async (req, res) => {
     try {
         const id = Number(req.params.id);
 
-        const task: Task|undefined = tasks.find(task => task.id === id);
+        const result = await pool.query<Task>("DELETE FROM tasks WHERE id = $1 RETURNING *", [id]);
+
+        const task: Task|undefined = result.rows[0];
 
         if (!task) {
             res.status(404).json({
@@ -128,14 +101,12 @@ app.delete("/tasks/:id", (req, res) => {
             return;
         };
 
-        tasks = tasks.filter(task => task.id !== id);
-
         res.status(200).json({
             message: `Task deleted`
         });
     } catch {
         res.status(500).json({
-            message: `Unexpected error`
+            message: `Backend error`
         })
     };
 });

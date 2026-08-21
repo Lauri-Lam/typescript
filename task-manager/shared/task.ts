@@ -12,6 +12,6 @@ export type Task = {
     id: number,
     title: string,
     completed: boolean,
-    description?: string,
+    description?: string|null,
     priority: TaskPrio
 };

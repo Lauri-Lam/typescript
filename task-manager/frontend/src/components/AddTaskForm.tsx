@@ -22,12 +22,14 @@ const AddTaskForm = ({ onAdd }: AddTaskFormProps) => {
             });
             setTitle("");
             setDescription("");
+            setPriority("medium");
         };
 
     return (
         <>
             <input
             value={title}
+            placeholder="Title"
             onChange={(event) => setTitle(event.target.value)}
             />
             <input

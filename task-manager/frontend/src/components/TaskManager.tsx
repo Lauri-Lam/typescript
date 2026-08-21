@@ -194,9 +194,8 @@ export default function TaskManager() {
                 });
 
                 if (!response.ok) {
-                    // const data: ErrorMessage = await response.json();
-                    // setError(data.message);
-                    setError("Couldn't load database on render");
+                    const data: ErrorMessage = await response.json();
+                    setError(data.message);
                     setTimeout(() => {
                         setError(null);
                     }, 3500);
@@ -217,10 +216,10 @@ export default function TaskManager() {
     
     return (
         <div>
+            <h1>Task Manager</h1>
             <div>
                 {error && <p>{error}</p>}
             </div>
-            <h1>Task Manager</h1>
             {loading && <p>Loading tasks...</p>}
             <ClearCompletedButton onClearCompleted={handleClearCompleted} />
             <TaskFilter onFilterChange={setFilter} />
