@@ -233,46 +233,50 @@ export default function TaskManager() {
     }, []);
     
     return (
-        <div className="container mt-4">
-            <h1 className="mb-4">Task Manager</h1>
-            <div>
-                {error && (
-                    <div
-                    className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-start bg-dark bg-opacity-50"
-                    style={{ zIndex: 1055 }}
-                    >
-                        <div className="alert alert-danger mt-5">
-                            {error}
-                        </div>
+        <div className="container mt-4" style={{ minWidth: "700px" }}>
+            <div className="card shadow-sm rounded-3">
+                <div className="card-body">
+                    <h1 className="mb-4">Task Manager</h1>
+                    <div>
+                        {error && (
+                            <div
+                            className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-start bg-dark bg-opacity-50"
+                            style={{ zIndex: 1055 }}
+                            >
+                                <div className="alert alert-danger mt-5">
+                                    {error}
+                                </div>
+                            </div>
+                        )}
                     </div>
-                )}
+                    {loading && <p className="text-secondary">Loading tasks...</p>}
+                    <div className="d-flex gap-2 mb-4">
+                        <ClearCompletedButton onClearCompleted={handleClearCompleted} />
+                        <TaskFilter onFilterChange={setFilter} />
+                    </div>
+                    <ul className="list-group mb-4">
+                        {filteredTasks.map(task => (
+                            <TaskItem
+                                key={task.id}
+                                task={task}
+                                editingId={editingId}
+                                editTitle={editTitle}
+                                editDescription={editDescription}
+                                editPriority={editPriority}
+                                onEditTitleChange={setEditTitle}
+                                onEditDescriptionChange={setEditDescription}
+                                onEditPriorityChange={setEditPriority}
+                                onComplete={handleCompleteTask}
+                                onDelete={handleDeleteTask}
+                                onStartEdit={handleStartEdit}
+                                onSaveEdit={handleSaveEdit}
+                                onCancelEdit={handleCancelEdit}
+                            />
+                        ))}
+                    </ul>
+                    <AddTaskForm onAdd={handleAddTask} />
+                </div>
             </div>
-            {loading && <p className="text-secondary">Loading tasks...</p>}
-            <div className="d-flex gap-2 mb-4">
-                <ClearCompletedButton onClearCompleted={handleClearCompleted} />
-                <TaskFilter onFilterChange={setFilter} />
-            </div>
-            <ul className="list-group mb-4">
-                {filteredTasks.map(task => (
-                    <TaskItem
-                        key={task.id}
-                        task={task}
-                        editingId={editingId}
-                        editTitle={editTitle}
-                        editDescription={editDescription}
-                        editPriority={editPriority}
-                        onEditTitleChange={setEditTitle}
-                        onEditDescriptionChange={setEditDescription}
-                        onEditPriorityChange={setEditPriority}
-                        onComplete={handleCompleteTask}
-                        onDelete={handleDeleteTask}
-                        onStartEdit={handleStartEdit}
-                        onSaveEdit={handleSaveEdit}
-                        onCancelEdit={handleCancelEdit}
-                    />
-                ))}
-            </ul>
-            <AddTaskForm onAdd={handleAddTask} />
         </div>
     )
 };

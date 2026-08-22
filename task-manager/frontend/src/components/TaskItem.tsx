@@ -60,7 +60,7 @@ const TaskItem = ({
                         </select>
                     </div>
                 ) : (
-                    <div className="d-flex align-items-center gap-5">
+                    <div className="d-flex align-items-center gap-4 flex-grow-1">
                         <span className="text-primary">{task.title}</span>
 
                         {task.description && (
@@ -74,7 +74,7 @@ const TaskItem = ({
                     </div>
                 )} 
             </div>
-            <div className="d-flex gap-2">
+            <div className="d-flex gap-2 flex-shrink-0">
                 {!task.completed && editingId !== task.id && (
                     <button onClick={() => onComplete(task.id)} className="btn btn-success btn-sm">
                         Complete
