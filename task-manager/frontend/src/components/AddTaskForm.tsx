@@ -26,29 +26,32 @@ const AddTaskForm = ({ onAdd }: AddTaskFormProps) => {
         };
 
     return (
-        <>
+        <div className="d-flex gap-2 mb-4 align-items-center justify-content-center">
             <input
             value={title}
             placeholder="Title"
             onChange={(event) => setTitle(event.target.value)}
+            className="form-control"
             />
             <input
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 placeholder="Description"
+                className="form-control"
             />
             <select
                 value={priority}
                 onChange={(event) => setPriority(event.target.value as TaskPrio)}
+                className="form-select"
             >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
             </select>
-            <button onClick={handleAddTask}>
+            <button onClick={handleAddTask} className="btn btn-primary text-nowrap btn-sm">
                 Add Task
             </button>
-        </>
+        </div>
     )
 };
 

@@ -80,6 +80,9 @@ export default function TaskManager() {
             setError(null);
         } catch {
             setError("No response from backend");
+            setTimeout(() => {
+                setError(null);
+            }, 3500);
         };
     };
 
@@ -106,6 +109,9 @@ export default function TaskManager() {
             setError(null);
         } catch {
             setError("No response from backend");
+            setTimeout(() => {
+                setError(null);
+            }, 3500);
         };
     };
 
@@ -140,6 +146,9 @@ export default function TaskManager() {
             setError(null);
         } catch {
             setError("No response from backend");
+            setTimeout(() => {
+                setError(null);
+            }, 3500);
         };
     };
 
@@ -160,6 +169,9 @@ export default function TaskManager() {
             setError(null);
         } catch {
             setError("No response from backend");
+            setTimeout(() => {
+                setError(null);
+            }, 3500);
         };
     };
     
@@ -182,6 +194,9 @@ export default function TaskManager() {
             setError(null);
         } catch {
             setError("No response from backend");
+            setTimeout(() => {
+                setError(null);
+            }, 3500);
         };
     };
 
@@ -207,6 +222,9 @@ export default function TaskManager() {
                 setTasks(loadedTasks);
             } catch {
                 setError("Failed to load tasks.");
+                setTimeout(() => {
+                    setError(null);
+                }, 3500);
             } finally {
                 setLoading(false);
             }
@@ -215,15 +233,26 @@ export default function TaskManager() {
     }, []);
     
     return (
-        <div>
-            <h1>Task Manager</h1>
+        <div className="container mt-4">
+            <h1 className="mb-4">Task Manager</h1>
             <div>
-                {error && <p>{error}</p>}
+                {error && (
+                    <div
+                    className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-start bg-dark bg-opacity-50"
+                    style={{ zIndex: 1055 }}
+                    >
+                        <div className="alert alert-danger mt-5">
+                            {error}
+                        </div>
+                    </div>
+                )}
             </div>
-            {loading && <p>Loading tasks...</p>}
-            <ClearCompletedButton onClearCompleted={handleClearCompleted} />
-            <TaskFilter onFilterChange={setFilter} />
-            <ul>
+            {loading && <p className="text-secondary">Loading tasks...</p>}
+            <div className="d-flex gap-2 mb-4">
+                <ClearCompletedButton onClearCompleted={handleClearCompleted} />
+                <TaskFilter onFilterChange={setFilter} />
+            </div>
+            <ul className="list-group mb-4">
                 {filteredTasks.map(task => (
                     <TaskItem
                         key={task.id}

@@ -5,7 +5,7 @@ type ClearCompletedButtonProps = {
 const ClearCompletedButton = ({ onClearCompleted }: ClearCompletedButtonProps) => {
     return (
         <div>
-            <button onClick={onClearCompleted}>
+            <button onClick={onClearCompleted} className="btn btn-outline-danger">
                 Clear Completed
             </button>
         </div>

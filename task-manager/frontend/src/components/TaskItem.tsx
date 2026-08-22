@@ -35,63 +35,71 @@ const TaskItem = ({
     onCancelEdit
 }: TaskItemProps) => {
     return (
-        <li>
-            {editingId === task.id ? (
-                <>
-                    <input
-                        value={editTitle}
-                        onChange={(event) => onEditTitleChange(event.target.value)}
-                    />
-                    <input
-                            value={editDescription}
-                            onChange={(event) => onEditDescriptionChange(event.target.value)}
-                    />
-                    <select
-                        value={editPriority}
-                        onChange={(event) => onEditPriorityChange(event.target.value as TaskPrio)}
-                    >
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                    </select>
-                </>
-            ) : (
-                <>
-                    {task.description ? (
-                        <>
-                            {task.title} - {task.description} - {task.priority} - {task.completed ? 'Done' : 'Not done'}
-                        </>
-                    ) : (
-                        <>
-                            {task.title} - {task.priority} - {task.completed ? 'Done' : 'Not done'}
-                        </>
-                    )}
-                </>
-            )} 
-            {!task.completed && editingId !== task.id && (
-                <button onClick={() => onComplete(task.id)}>
-                    Complete
-                </button>
-            )}
-            {editingId !== task.id && (
-                <button onClick={() => onDelete(task.id)}>
-                    Delete
-                </button>
-            )}
-            {editingId === task.id ? (
-                    <>
-                        <button onClick={onCancelEdit}>
-                            Cancel
-                        </button>
-                        <button onClick={() => onSaveEdit(task.id)}>
-                            Save
-                        </button>
-                    </>
-            ) : (
-                    <button onClick={() => onStartEdit(task)}>
-                        Edit
+        <li className="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                {editingId === task.id ? (
+                    <div className="d-flex gap-2 flex-grow-1 me-3">
+                        <input
+                            value={editTitle}
+                            onChange={(event) => onEditTitleChange(event.target.value)}
+                            className="form-control"
+                        />
+                        <input
+                                value={editDescription}
+                                onChange={(event) => onEditDescriptionChange(event.target.value)}
+                                className="form-control"
+                        />
+                        <select
+                            value={editPriority}
+                            onChange={(event) => onEditPriorityChange(event.target.value as TaskPrio)}
+                            className="form-select"
+                        >
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                ) : (
+                    <div className="d-flex align-items-center gap-5">
+                        <span className="text-primary">{task.title}</span>
+
+                        {task.description && (
+                            <span className="text-secondary">
+                                {task.description}
+                            </span>)}
+
+                        <span className="badge text-bg-secondary">{task.priority}</span>
+
+                        <span className="badge text-bg-light">{task.completed ? "Done" : "Not done"}</span>
+                    </div>
+                )} 
+            </div>
+            <div className="d-flex gap-2">
+                {!task.completed && editingId !== task.id && (
+                    <button onClick={() => onComplete(task.id)} className="btn btn-success btn-sm">
+                        Complete
                     </button>
-            )}
+                )}
+                {editingId !== task.id && (
+                    <button onClick={() => onDelete(task.id)} className="btn btn-danger btn-sm">
+                        Delete
+                    </button>
+                )}
+                {editingId === task.id ? (
+                        <>
+                            <button onClick={onCancelEdit} className="btn btn-outline-danger btn-sm">
+                                Cancel
+                            </button>
+                            <button onClick={() => onSaveEdit(task.id)} className="btn btn-success btn-sm">
+                                Save
+                            </button>
+                        </>
+                ) : (
+                        <button onClick={() => onStartEdit(task)} className="btn btn-outline-primary btn-sm">
+                            Edit
+                        </button>
+                )}
+            </div>
         </li>
     );
 };

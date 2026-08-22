@@ -7,13 +7,13 @@ type TaskFilterProps = {
 const TaskFilter = ({ onFilterChange }: TaskFilterProps) => {
     return (
         <>
-            <button onClick={() => onFilterChange("all")}>
+            <button onClick={() => onFilterChange("all")} className="btn btn-outline-secondary">
                 All
             </button>
-            <button onClick={() => onFilterChange("active")}>
+            <button onClick={() => onFilterChange("active")} className="btn btn-outline-secondary">
                 Active
             </button>
-            <button onClick={() => onFilterChange("completed")}>
+            <button onClick={() => onFilterChange("completed")} className="btn btn-outline-secondary">
                 Completed
             </button>
         </>
